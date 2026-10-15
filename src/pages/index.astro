@@ -616,10 +616,6 @@ const ogImage = new URL('/og.png', site).href;
 				box-shadow: 0 8px 26px rgba(216, 254, 63, 0.32);
 			}
 
-			.btn.ghost {
-				grid-column: 1 / -1;
-			}
-
 			.btn:disabled {
 				opacity: 0.4;
 				cursor: not-allowed;
@@ -864,8 +860,11 @@ const ogImage = new URL('/og.png', site).href;
 
 					<div class="actions">
 						<button id="download" class="btn" disabled>⬇ Descargar PNG</button>
+						<button id="downloadTransparent" class="btn" disabled>
+							⬇ PNG sin fondo
+						</button>
 						<button id="share" class="btn" disabled>⇪ Compartir</button>
-						<button id="copyQr" class="btn ghost" disabled>
+						<button id="copyQr" class="btn" disabled>
 							⧉ Copiar QR al portapapeles
 						</button>
 					</div>
@@ -910,8 +909,8 @@ const ogImage = new URL('/og.png', site).href;
 				<details>
 					<summary>¿Cómo descargo o comparto mi código QR?</summary>
 					<p>
-						Usa el botón «Descargar PNG» para guardar el QR como imagen, «Copiar QR» para
-						pegarlo en el portapapeles o «Compartir» para enviarlo desde tu app favorita.
+						Usa «Descargar PNG» para guardar el QR con fondo blanco o «PNG sin fondo» para
+						guardarlo transparente. También puedes copiarlo al portapapeles o compartirlo.
 					</p>
 				</details>
 			</section>
@@ -935,6 +934,7 @@ const ogImage = new URL('/og.png', site).href;
 			const empty = document.getElementById('qrEmpty');
 			const colEl = document.getElementById('colorInput');
 			const downloadBtn = document.getElementById('download');
+			const downloadTransparentBtn = document.getElementById('downloadTransparent');
 			const shareBtn = document.getElementById('share');
 			const copyBtn = document.getElementById('copyQr');
 			const toast = document.getElementById('toast');
@@ -971,6 +971,7 @@ const ogImage = new URL('/og.png', site).href;
 					wrap.hidden = true;
 					empty.hidden = false;
 					downloadBtn.disabled = true;
+					downloadTransparentBtn.disabled = true;
 					shareBtn.disabled = true;
 					copyBtn.disabled = true;
 					return;
@@ -981,6 +982,7 @@ const ogImage = new URL('/og.png', site).href;
 				if (!value) {
 					errEl.textContent = '⚠ Ingresa una URL válida, ej: https://ejemplo.com';
 					downloadBtn.disabled = true;
+					downloadTransparentBtn.disabled = true;
 					shareBtn.disabled = true;
 					copyBtn.disabled = true;
 					return;
@@ -993,6 +995,7 @@ const ogImage = new URL('/og.png', site).href;
 				draw(value);
 
 				downloadBtn.disabled = false;
+				downloadTransparentBtn.disabled = false;
 				shareBtn.disabled = false;
 				copyBtn.disabled = false;
 			}
@@ -1004,31 +1007,40 @@ const ogImage = new URL('/og.png', site).href;
 			}
 
 			function draw(text) {
-				const qr = qrcode(0, 'M');
-				qr.addData(text);
-				qr.make();
-
+				const qr = createQr(text);
 				const size = scaledSize();
 				wrap.hidden = false;
 				empty.hidden = true;
 				wrap.style.width = Math.min(size, 300) + 'px';
 				wrap.innerHTML = '';
 
+				wrap.appendChild(renderQr(qr, size));
+			}
+
+			function createQr(text) {
+				const qr = qrcode(0, 'M');
+				qr.addData(text);
+				qr.make();
+				return qr;
+			}
+
+			function renderQr(qr, size, transparent = false) {
 				const canvas = document.createElement('canvas');
-				const px = size;
-				canvas.width = px;
-				canvas.height = px;
+				canvas.width = size;
+				canvas.height = size;
 				const ctx = canvas.getContext('2d');
 				const count = qr.getModuleCount();
 				// Quiet zone obligatoria: 4 módulos de margen blanco a cada lado.
 				// Se descuenta del tamaño de celda para que el código ESTÉ dentro del lienzo.
 				const quiet = 4;
 				const totalCells = count + quiet * 2;
-				const cell = px / totalCells;
+				const cell = size / totalCells;
 				const origin = quiet * cell;
 				const color = state.color;
-				ctx.fillStyle = '#ffffff';
-				ctx.fillRect(0, 0, px, px);
+				if (!transparent) {
+					ctx.fillStyle = '#ffffff';
+					ctx.fillRect(0, 0, size, size);
+				}
 
 				for (let r = 0; r < count; r++) {
 					for (let c = 0; c < count; c++) {
@@ -1056,7 +1068,7 @@ const ogImage = new URL('/og.png', site).href;
 					}
 				}
 
-				wrap.appendChild(canvas);
+				return canvas;
 			}
 
 			function roundRect(ctx, x, y, w, h, r) {
@@ -1074,14 +1086,15 @@ const ogImage = new URL('/og.png', site).href;
 				return wrap.querySelector('canvas');
 			}
 
-			function downloadPng() {
-				const canvas = getCanvas();
-				if (!canvas) return;
+			function downloadPng(transparent = false) {
+				const { value } = normalizeUrl(urlEl.value);
+				if (!value) return;
+				const canvas = renderQr(createQr(value), scaledSize(), transparent);
 				const a = document.createElement('a');
-				a.download = 'qr-libre.png';
+				a.download = transparent ? 'qr-libre-transparente.png' : 'qr-libre.png';
 				a.href = canvas.toDataURL('image/png');
 				a.click();
-				showToast('PNG descargado');
+				showToast(transparent ? 'PNG transparente descargado' : 'PNG descargado');
 			}
 
 			function getValidatedUrl() {
@@ -1177,6 +1190,7 @@ const ogImage = new URL('/og.png', site).href;
 			});
 
 			downloadBtn.addEventListener('click', downloadPng);
+			downloadTransparentBtn.addEventListener('click', () => downloadPng(true));
 			copyBtn.addEventListener('click', copyPngToClipboard);
 			shareBtn.addEventListener('click', shareUrl);
 
