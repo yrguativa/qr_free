@@ -869,6 +869,13 @@ const ogImage = new URL('/og.png', site).href;
 						</div>
 					</div>
 
+					<div class="logo-row">
+						<label for="logoInput" class="btn">▣ Agregar imagen</label>
+						<input id="logoInput" type="file" accept="image/*" hidden />
+						<img id="logoPreview" class="logo-preview" alt="Imagen central del QR" hidden />
+						<button id="logoRemove" type="button" class="btn logo-remove" hidden>✕ Quitar</button>
+						<span class="hint">PNG, JPG o SVG · se muestra en el centro</span>
+					</div>
 				</div>
 
 				<!-- ======= QR OUTPUT ======= -->
@@ -974,6 +981,9 @@ const ogImage = new URL('/og.png', site).href;
 			const shareBtn = document.getElementById('share');
 			const copyBtn = document.getElementById('copyQr');
 			const toast = document.getElementById('toast');
+			const logoInput = document.getElementById('logoInput');
+			const logoPreview = document.getElementById('logoPreview');
+			const logoRemove = document.getElementById('logoRemove');
 
 			let state = { size: 240, style: 'square', color: '#0a0b00', logo: null };
 			let debounceTimer = null;
@@ -1242,6 +1252,40 @@ const ogImage = new URL('/og.png', site).href;
 					state.size = parseInt(btn.dataset.v, 10);
 					render();
 				});
+			});
+
+			logoInput.addEventListener('change', () => {
+				const file = logoInput.files?.[0];
+				if (!file) return;
+				if (!file.type.startsWith('image/')) {
+					errEl.textContent = '⚠ El archivo debe ser una imagen.';
+					logoInput.value = '';
+					return;
+				}
+				const url = URL.createObjectURL(file);
+				const img = new Image();
+				img.onload = () => {
+					state.logo = img;
+					logoPreview.src = url;
+					logoPreview.hidden = false;
+					logoRemove.hidden = false;
+					render();
+				};
+				img.onerror = () => {
+					URL.revokeObjectURL(url);
+					errEl.textContent = '⚠ No se pudo cargar la imagen.';
+					logoInput.value = '';
+				};
+				img.src = url;
+			});
+
+			logoRemove.addEventListener('click', () => {
+				state.logo = null;
+				logoInput.value = '';
+				logoPreview.hidden = true;
+				logoPreview.removeAttribute('src');
+				logoRemove.hidden = true;
+				render();
 			});
 
 			downloadBtn.addEventListener('click', downloadPng);
