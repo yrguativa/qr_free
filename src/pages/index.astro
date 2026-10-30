@@ -503,6 +503,41 @@ const ogImage = new URL('/og.png', site).href;
 				font-weight: 600;
 			}
 
+			/* Logo / imagen central */
+			.logo-row {
+				display: flex;
+				align-items: center;
+				flex-wrap: wrap;
+				gap: 0.75rem;
+				margin-bottom: 0.5rem;
+			}
+
+			.logo-row .hint {
+				font-size: 0.68rem;
+				color: var(--muted);
+				letter-spacing: 0.04em;
+			}
+
+			.logo-row .btn {
+				padding: 0.6rem 0.9rem;
+				font-size: 0.78rem;
+			}
+
+			.logo-preview {
+				width: 42px;
+				height: 42px;
+				object-fit: contain;
+				background: #fff;
+				border-radius: 8px;
+				border: 1px solid var(--line);
+				padding: 3px;
+			}
+
+			.logo-preview[hidden],
+			.logo-remove[hidden] {
+				display: none;
+			}
+
 			/* QR stage */
 			.qr-stage {
 				display: flex;
