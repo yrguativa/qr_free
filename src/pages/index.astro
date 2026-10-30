@@ -523,6 +523,11 @@ const ogImage = new URL('/og.png', site).href;
 				font-size: 0.78rem;
 			}
 
+			.logo-row .btn svg {
+				flex-shrink: 0;
+				color: var(--accent);
+			}
+
 			.logo-preview {
 				width: 42px;
 				height: 42px;
@@ -870,7 +875,24 @@ const ogImage = new URL('/og.png', site).href;
 					</div>
 
 					<div class="logo-row">
-						<label for="logoInput" class="btn">▣ Agregar imagen</label>
+						<label for="logoInput" class="btn">
+							<svg
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+							>
+								<rect x="3" y="3" width="18" height="18" rx="3" />
+								<circle cx="9" cy="9" r="2" />
+								<path d="m21 15-5-5L5 21" />
+							</svg>
+							Agregar imagen
+						</label>
 						<input id="logoInput" type="file" accept="image/*" hidden />
 						<img id="logoPreview" class="logo-preview" alt="Imagen central del QR" hidden />
 						<button id="logoRemove" type="button" class="btn logo-remove" hidden>✕ Quitar</button>
