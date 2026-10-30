@@ -868,6 +868,7 @@ const ogImage = new URL('/og.png', site).href;
 							</label>
 						</div>
 					</div>
+
 				</div>
 
 				<!-- ======= QR OUTPUT ======= -->
@@ -974,7 +975,7 @@ const ogImage = new URL('/og.png', site).href;
 			const copyBtn = document.getElementById('copyQr');
 			const toast = document.getElementById('toast');
 
-			let state = { size: 240, style: 'square', color: '#0a0b00' };
+			let state = { size: 240, style: 'square', color: '#0a0b00', logo: null };
 			let debounceTimer = null;
 
 			const urlPattern = /^(https?:\/\/)/i;
@@ -1053,7 +1054,7 @@ const ogImage = new URL('/og.png', site).href;
 			}
 
 			function createQr(text) {
-				const qr = qrcode(0, 'M');
+				const qr = qrcode(0, state.logo ? 'H' : 'M');
 				qr.addData(text);
 				qr.make();
 				return qr;
@@ -1103,7 +1104,26 @@ const ogImage = new URL('/og.png', site).href;
 					}
 				}
 
+				if (state.logo) drawLogo(ctx, size, count);
+
 				return canvas;
+			}
+
+			function drawLogo(ctx, size, count) {
+				const img = state.logo;
+				const box = count * (size / (count + 8)) * 0.22;
+				const pad = box * 0.08;
+				const side = box + pad * 2;
+				const x = (size - side) / 2;
+
+				ctx.fillStyle = '#ffffff';
+				roundRect(ctx, x, x, side, side, side * 0.18);
+				ctx.fill();
+
+				const ratio = Math.min(box / img.naturalWidth, box / img.naturalHeight);
+				const w = img.naturalWidth * ratio;
+				const h = img.naturalHeight * ratio;
+				ctx.drawImage(img, size / 2 - w / 2, size / 2 - h / 2, w, h);
 			}
 
 			function roundRect(ctx, x, y, w, h, r) {
